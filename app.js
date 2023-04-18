@@ -8,11 +8,27 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const catalogRouter = require('./routes/catalog');
 
+const compression = require('compression');
+const helmet = require("helmet");
+
 var app = express();
+
+// Set up rate limiter: maximum of 20 requests per min
+const RateLimit = require("express-rate-limit");
+const limiter = RateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 20,
+})
+
+// App rate limiter to all requests
+app.use(limiter);
 
 const mongoose = require('mongoose');
 mongoose.set('strictQuery', false);
-const mongoDB = "mongodb+srv://m001-student:m001-student@sandbox.hfwii.mongodb.net/local_library?retryWrites=true&w=majority";
+
+const dev_db_url =
+  "mongodb+srv://m001-student:m001-student@sandbox.hfwii.mongodb.net/local_library?retryWrites=true&w=majority";
+const mongoDB = process.env.MONGODB_URI || dev_db_url;
 
 main().catch(err => console.log(err));
 async function main() {
@@ -27,6 +43,14 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(compression());
+app.use(
+    helmet.contentSecurityPolicy({
+      directives: {
+        "script-src": ["'self'", "code.jquery.com", "cdn.jsdelivr.net"],
+      },
+    })
+)
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
