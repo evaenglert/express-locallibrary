@@ -165,7 +165,7 @@ exports.book_delete_post = (req, res) => {
 exports.book_update_get = asyncHandler(async (req, res, next) => {
   // Get book authors and genres for form
   const [book, allAuthors, allGenres] = await Promise.all([
-    Book.findById(req.params.id).populate("book").populate("genre").exec(),
+    Book.findById(req.params.id).populate("author").populate("genre").exec(),
     Author.find().exec(),
     Genre.find().exec(),
   ])
